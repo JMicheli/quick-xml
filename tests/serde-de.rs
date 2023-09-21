@@ -6570,3 +6570,27 @@ mod xml_prolog {
         );
     }
 }
+
+/// Regression test for https://github.com/tafia/quick-xml/issues/257
+#[test]
+fn issue257() {
+    use quick_xml::de::from_str;
+    use serde::Deserialize;
+
+    #[derive(Debug, PartialEq, Default, Deserialize)]
+    #[serde(default)]
+    struct OuterNode {
+        #[serde(rename = "$text")]
+        pub text: String
+    }
+
+    const XML: &str = r#"
+    <?xml version="1.0" encoding="utf-8"?>
+    <OuterNode>
+        Text content with <i>italics</i> or something.
+    </OuterNode>
+    "#;
+
+    let deserialized_result =  from_str::<OuterNode>(XML).unwrap();
+    assert_eq!(deserialized_result.text, "Text content with <i>italics</i> or something.".to_string());
+}
